@@ -36,7 +36,7 @@ import inspect
 import threading
 import time
 
-__all__ = ['TimeoutError', 'timeout_after']
+__all__ = ['timeout_after']
 
 def interrupt_thread(tid, exctype):
   """
