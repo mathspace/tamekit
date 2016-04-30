@@ -27,7 +27,7 @@ class TimeoutAfterTests(unittest.TestCase):
     self.assertTrue(timed_out)
     self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
 
-  def test_with_stmt(self):
+  def test_context_manager(self):
 
     timed_out = False
     start_ts = time.perf_counter()
