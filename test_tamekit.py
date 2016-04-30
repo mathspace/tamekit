@@ -75,5 +75,18 @@ class TimeoutAfterTests(unittest.TestCase):
         for i in range(2 ** 64):
           pass
 
+  def test_caught_timeout_in_thread(self):
+
+    try:
+      with tamekit.timeout_after(0.2):
+        try:
+          while True:
+            time.sleep(0.01)
+        except TimeoutError:
+          for i in range(13):
+            time.sleep(0.01)
+    except TimeoutError:
+      self.fail('timeout_after must not raise multiple exc')
+
 if __name__ == '__main__':
   unittest.main()

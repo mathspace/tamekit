@@ -104,6 +104,7 @@ class timeout_after(object):
       if remaining < 0:
         try:
           interrupt_thread(self.tid, self.exctype)
+          return
         except ValueError:
           return
         except SystemError:
