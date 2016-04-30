@@ -44,6 +44,17 @@ class TimeoutAfterTests(unittest.TestCase):
     self.assertTrue(timed_out)
     self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
 
+  def test_exc_after_wrapped_code(self):
+
+    with tamekit.timeout_after(1):
+      for i in range(50):
+        time.sleep(0.01)
+    try:
+      for i in range(100):
+        time.sleep(0.01)
+    except TimeoutError:
+      self.fail('exc raised outside wrapped block')
+
   def test_long_system_call(self):
 
     timed_out = False
