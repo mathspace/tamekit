@@ -77,8 +77,6 @@ class timeout_after(object):
     """
     if not inspect.isclass(exctype):
       raise TypeError('exctype must be a type (not instance)')
-    if exctype in (ValueError, SystemError):
-      raise ValueError('exctype cannot be ValueError or SystemError')
 
     self.exctype = exctype
     self.completed = False

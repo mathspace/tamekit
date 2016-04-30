@@ -75,10 +75,5 @@ class TimeoutAfterTests(unittest.TestCase):
         for i in range(2 ** 64):
           pass
 
-    with self.assertRaises(ValueError):
-      with tamekit.timeout_after(1, exctype=SystemError):
-        for i in range(2 ** 64):
-          pass
-
 if __name__ == '__main__':
   unittest.main()
