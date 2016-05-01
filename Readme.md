@@ -12,3 +12,6 @@ form:
 
     with tamekit.timeout_after(2):
       ...
+
+Note that `timeout_after()` uses CPython specific API to get the job
+done.
