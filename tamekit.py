@@ -80,6 +80,7 @@ class timeout_after(object):
 
     self.exctype = exctype
     self.completed = False
+    self.completed_lock = threading.Lock()
     self.tid = threading.get_ident()
     self.start = time.perf_counter()
     self.dur = dur
@@ -95,18 +96,22 @@ class timeout_after(object):
     threading.Thread(target=self.watcher, daemon=True).start()
     
   def __exit__(self, typ, value, traceback):
-    self.completed = True
+    with self.completed_lock:
+      self.completed = True
     return False
 
   def watcher(self):
-    while not self.completed:
-      remaining = self.dur - (time.perf_counter() - self.start)
-      if remaining < 0:
-        try:
-          interrupt_thread(self.tid, self.exctype)
+    while True:
+      with self.completed_lock:
+        if self.completed:
           return
-        except ValueError:
-          return
-        except SystemError:
-          pass
+        remaining = self.dur - (time.perf_counter() - self.start)
+        if remaining < 0:
+          try:
+            interrupt_thread(self.tid, self.exctype)
+            return
+          except ValueError:
+            return
+          except SystemError:
+            pass
       time.sleep(max(0.002, remaining / 2))
