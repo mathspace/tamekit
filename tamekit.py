@@ -81,8 +81,6 @@ class timeout_after(object):
     self.exctype = exctype
     self.completed = False
     self.completed_lock = threading.Lock()
-    self.tid = threading.get_ident()
-    self.start = time.perf_counter()
     self.dur = dur
 
   def __call__(self, f):
@@ -93,6 +91,8 @@ class timeout_after(object):
     return wrapper
 
   def __enter__(self):
+    self.tid = threading.get_ident()
+    self.start = time.perf_counter()
     threading.Thread(target=self.watcher, daemon=True).start()
     
   def __exit__(self, typ, value, traceback):

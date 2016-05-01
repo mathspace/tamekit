@@ -99,5 +99,22 @@ class TimeoutAfterTests(unittest.TestCase):
     except TimeoutError:
       self.fail('timeout_after must not raise multiple exc')
 
+  def test_delayed_use(self):
+
+    ta = tamekit.timeout_after(1)
+    try:
+      for i in range(70):
+        time.sleep(0.01)
+    except TimeoutError:
+      self.fail('exc raised without deco or context manager')
+
+    start_ts = time.perf_counter()
+    with self.assertRaises(TimeoutError):
+      with ta:
+        for i in range(120):
+          time.sleep(0.01)
+    end_ts = time.perf_counter()
+    self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
+
 if __name__ == '__main__':
   unittest.main()
