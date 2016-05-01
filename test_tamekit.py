@@ -101,5 +101,19 @@ class TimeoutAfterTests(unittest.TestCase):
     end_ts = time.perf_counter()
     self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
 
+  def test_delayed_use_decorator(self):
+
+    @tamekit.timeout_after(1)
+    def _fn():
+      self.is_2_plus_2_really_4()
+
+    time.sleep(1)
+
+    start_ts = time.perf_counter()
+    with self.assertRaises(TimeoutError):
+      _fn()
+    end_ts = time.perf_counter()
+    self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
+
 if __name__ == '__main__':
   unittest.main()
