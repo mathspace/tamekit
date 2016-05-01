@@ -6,18 +6,17 @@ import time
 
 class TimeoutAfterTests(unittest.TestCase):
 
-  def is_2_plus_2_really_4(self):
-    for i in range(2 ** 64):
-      u = 2 + 2
-      if u != 4:
-        return False
-    return True
+  def compute_for(self, dur):
+    start = time.perf_counter()
+    u = 0
+    while time.perf_counter() - start < dur:
+      pass
 
   def test_decorator(self):
 
     @tamekit.timeout_after(1)
     def _fn():
-      self.is_2_plus_2_really_4()
+      self.compute_for(2)
 
     start_ts = time.perf_counter()
     with self.assertRaises(TimeoutError):
@@ -30,7 +29,7 @@ class TimeoutAfterTests(unittest.TestCase):
     start_ts = time.perf_counter()
     with self.assertRaises(TimeoutError):
       with tamekit.timeout_after(1):
-        self.is_2_plus_2_really_4()
+        self.compute_for(2)
     end_ts = time.perf_counter()
     self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
 
@@ -105,7 +104,7 @@ class TimeoutAfterTests(unittest.TestCase):
 
     @tamekit.timeout_after(1)
     def _fn():
-      self.is_2_plus_2_really_4()
+      self.compute_for(2)
 
     time.sleep(1)
 
