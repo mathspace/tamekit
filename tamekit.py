@@ -54,15 +54,11 @@ def interrupt_thread(tid, exctype):
   tid: thread ID as returned by threading.get_ident() or Thread.ident
 
   Raises ValueError if thread doesn't exist
-  Raises SystemError if call failed
   """
   res = ctypes.pythonapi.PyThreadState_SetAsyncExc(
     ctypes.c_long(tid), ctypes.py_object(exctype))
   if res == 0:
     raise ValueError('Invalid thread ID')
-  elif res > 1:
-    ctypes.pythonapi.PyThreadState_SetAsyncExc(ctypes.c_long(tid), NULL)
-    raise SystemError('PyThreadState_SetAsyncExc failed')
 
 class timeout_after(object):
   """
@@ -118,11 +114,10 @@ class timeout_after(object):
           return
         remaining = self.dur - (timeit.default_timer() - self.start)
         if remaining < 0:
-          try:
-            interrupt_thread(self.tid, self.exctype)
-            return
-          except ValueError:
-            return
-          except SystemError:
-            pass
+          # ValueError could never be raised because __exit__ holds a
+          # lock to set completed flag. If the flag was set, we'd never
+          # be in this block. If the flag wasn't set, target thread
+          # cannot progress until we get out of this block.
+          interrupt_thread(self.tid, self.exctype)
+          return
       time.sleep(max(0.002, remaining / 2))
