@@ -30,13 +30,22 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from __future__ import division
+
 import ctypes
 import functools
 import inspect
 import threading
 import time
+import timeit
 
-__all__ = ['timeout_after']
+__all__ = ['timeout_after', 'TimeoutError']
+
+try:
+  TimeoutError = TimeoutError
+except NameError:
+  class TimeoutError(Exception):
+    pass
 
 def interrupt_thread(tid, exctype):
   """
@@ -91,9 +100,11 @@ class timeout_after(object):
     return wrapper
 
   def __enter__(self):
-    self.tid = threading.get_ident()
-    self.start = time.perf_counter()
-    threading.Thread(target=self.watcher, daemon=True).start()
+    self.tid = threading.current_thread().ident
+    self.start = timeit.default_timer()
+    watcher_thread = threading.Thread(target=self.watcher)
+    watcher_thread.daemon = True
+    watcher_thread.start()
     
   def __exit__(self, typ, value, traceback):
     with self.completed_lock:
@@ -105,7 +116,7 @@ class timeout_after(object):
       with self.completed_lock:
         if self.completed:
           return
-        remaining = self.dur - (time.perf_counter() - self.start)
+        remaining = self.dur - (timeit.default_timer() - self.start)
         if remaining < 0:
           try:
             interrupt_thread(self.tid, self.exctype)

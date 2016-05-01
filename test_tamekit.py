@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 
-import unittest
 import tamekit
 import time
+import timeit
+import unittest
+
+TimeoutError = tamekit.TimeoutError
 
 class TimeoutAfterTests(unittest.TestCase):
 
   def compute_for(self, dur):
-    start = time.perf_counter()
+    start = timeit.default_timer()
     u = 0
-    while time.perf_counter() - start < dur:
+    while timeit.default_timer() - start < dur:
       pass
 
   def test_decorator(self):
@@ -18,41 +21,39 @@ class TimeoutAfterTests(unittest.TestCase):
     def _fn():
       self.compute_for(2)
 
-    start_ts = time.perf_counter()
+    start_ts = timeit.default_timer()
     with self.assertRaises(TimeoutError):
       _fn()
-    end_ts = time.perf_counter()
+    end_ts = timeit.default_timer()
     self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
 
   def test_context_manager(self):
 
-    start_ts = time.perf_counter()
+    start_ts = timeit.default_timer()
     with self.assertRaises(TimeoutError):
       with tamekit.timeout_after(1):
         self.compute_for(2)
-    end_ts = time.perf_counter()
+    end_ts = timeit.default_timer()
     self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
 
   def test_exc_after_wrapped_code(self):
 
     with tamekit.timeout_after(1):
-      for i in range(50):
-        time.sleep(0.01)
+      self.compute_for(0.5)
     try:
-      for i in range(100):
-        time.sleep(0.01)
+      self.compute_for(1)
     except TimeoutError:
       self.fail('exc raised outside wrapped block')
 
   def test_long_system_call(self):
 
-    start_ts = time.perf_counter()
+    start_ts = timeit.default_timer()
     with self.assertRaises(TimeoutError):
       with tamekit.timeout_after(1):
-        time.sleep(1.1)
-        time.sleep(1.1)
-    end_ts = time.perf_counter()
-    self.assertLess(abs(1.1 - (end_ts - start_ts)), 0.1)
+        time.sleep(1.3)
+        self.compute_for(1)
+    end_ts = timeit.default_timer()
+    self.assertLess(abs(1.3 - (end_ts - start_ts)), 0.1)
 
   def test_custom_exc(self):
 
@@ -62,24 +63,20 @@ class TimeoutAfterTests(unittest.TestCase):
 
     with self.assertRaises(CustomError):
       with tamekit.timeout_after(1, exctype=CustomError):
-        for i in range(2 ** 64):
-          pass
+        self.compute_for(2)
 
     with self.assertRaises(TypeError):
       with tamekit.timeout_after(1, exctype=custom_error):
-        for i in range(2 ** 64):
-          pass
+        self.compute_for(2)
 
   def test_caught_timeout_in_thread(self):
 
     try:
-      with tamekit.timeout_after(0.2):
+      with tamekit.timeout_after(1):
         try:
-          while True:
-            time.sleep(0.01)
+          self.compute_for(0.5)
         except TimeoutError:
-          for i in range(13):
-            time.sleep(0.01)
+          self.compute_for(1)
     except TimeoutError:
       self.fail('timeout_after must not raise multiple exc')
 
@@ -87,17 +84,15 @@ class TimeoutAfterTests(unittest.TestCase):
 
     ta = tamekit.timeout_after(1)
     try:
-      for i in range(70):
-        time.sleep(0.01)
+      self.compute_for(1.5)
     except TimeoutError:
       self.fail('exc raised without deco or context manager')
 
-    start_ts = time.perf_counter()
+    start_ts = timeit.default_timer()
     with self.assertRaises(TimeoutError):
       with ta:
-        for i in range(120):
-          time.sleep(0.01)
-    end_ts = time.perf_counter()
+        self.compute_for(2)
+    end_ts = timeit.default_timer()
     self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
 
   def test_delayed_use_decorator(self):
@@ -108,10 +103,10 @@ class TimeoutAfterTests(unittest.TestCase):
 
     time.sleep(1)
 
-    start_ts = time.perf_counter()
+    start_ts = timeit.default_timer()
     with self.assertRaises(TimeoutError):
       _fn()
-    end_ts = time.perf_counter()
+    end_ts = timeit.default_timer()
     self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
 
   def test_no_timeout(self):
