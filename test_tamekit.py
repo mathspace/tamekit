@@ -6,42 +6,32 @@ import time
 
 class TimeoutAfterTests(unittest.TestCase):
 
+  def is_2_plus_2_really_4(self):
+    for i in range(2 ** 64):
+      u = 2 + 2
+      if u != 4:
+        return False
+    return True
+
   def test_decorator(self):
 
     @tamekit.timeout_after(1)
-    def is_2_plus_2_really_4():
-      for i in range(2 ** 64):
-        u = 2 + 2
-        if u != 4:
-          return False
-      return True
+    def _fn():
+      self.is_2_plus_2_really_4()
 
-    timed_out = False
     start_ts = time.perf_counter()
-    try:
-      is_2_plus_2_really_4()
-    except TimeoutError:
-      timed_out = True
+    with self.assertRaises(TimeoutError):
+      _fn()
     end_ts = time.perf_counter()
-
-    self.assertTrue(timed_out)
     self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
 
   def test_context_manager(self):
 
-    timed_out = False
     start_ts = time.perf_counter()
-    try:
+    with self.assertRaises(TimeoutError):
       with tamekit.timeout_after(1):
-        for i in range(2 ** 64):
-          u = 2 + 2
-          if u != 4:
-            break
-    except TimeoutError:
-      timed_out = True
+        self.is_2_plus_2_really_4()
     end_ts = time.perf_counter()
-
-    self.assertTrue(timed_out)
     self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
 
   def test_exc_after_wrapped_code(self):
@@ -57,18 +47,13 @@ class TimeoutAfterTests(unittest.TestCase):
 
   def test_long_system_call(self):
 
-    timed_out = False
     start_ts = time.perf_counter()
-    try:
+    with self.assertRaises(TimeoutError):
       with tamekit.timeout_after(1):
-        while True:
-          time.sleep(0.08)
-    except TimeoutError:
-      timed_out = True
+        time.sleep(1.1)
+        time.sleep(1.1)
     end_ts = time.perf_counter()
-
-    self.assertTrue(timed_out)
-    self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
+    self.assertLess(abs(1.1 - (end_ts - start_ts)), 0.1)
 
   def test_custom_exc(self):
 
