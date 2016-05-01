@@ -114,5 +114,13 @@ class TimeoutAfterTests(unittest.TestCase):
     end_ts = time.perf_counter()
     self.assertLess(abs(1 - (end_ts - start_ts)), 0.1)
 
+  def test_no_timeout(self):
+
+    try:
+      with tamekit.timeout_after(2):
+        self.compute_for(0.7)
+    except TimeoutError:
+      self.fail('exc raised before timeout')
+
 if __name__ == '__main__':
   unittest.main()
