@@ -91,7 +91,9 @@ class timeout_after(object):
   def __call__(self, f):
     @functools.wraps(f)
     def wrapper(*args, **kwargs):
-      with self:
+      # If we don't clone this instance, the decorated function will
+      # only be time limited the first time it's called.
+      with timeout_after(dur=self.dur, exctype=self.exctype):
         return f(*args, **kwargs)
     return wrapper
 

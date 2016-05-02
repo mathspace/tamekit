@@ -117,5 +117,17 @@ class TimeoutAfterTests(unittest.TestCase):
     except TimeoutError:
       self.fail('exc raised before timeout')
 
+  def test_multiple_decorator_call(self):
+
+    @tamekit.timeout_after(1)
+    def _fn():
+      self.compute_for(2)
+
+    with self.assertRaises(TimeoutError):
+      _fn()
+
+    with self.assertRaises(TimeoutError):
+      _fn()
+
 if __name__ == '__main__':
   unittest.main()
