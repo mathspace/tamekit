@@ -35,6 +35,7 @@ from __future__ import division
 import ctypes
 import functools
 import inspect
+import sys
 import threading
 import time
 import timeit
@@ -46,6 +47,9 @@ try:
 except NameError:
   class TimeoutError(Exception):
     pass
+
+class ComputeoutError(Exception):
+  pass
 
 def interrupt_thread(tid, exctype):
   """
@@ -59,6 +63,60 @@ def interrupt_thread(tid, exctype):
     ctypes.c_long(tid), ctypes.py_object(exctype))
   if res == 0:
     raise ValueError('Invalid thread ID')
+
+class computeout_after(object):
+
+  def __init__(self, lines):
+    self.lines = lines
+
+  def __call__(self, f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+      current = 0
+
+      def trace(frame, event, arg):
+        nonlocal current
+        if current > self.lines:
+          raise ComputeoutError()
+        else:
+          current += 1
+        return trace
+
+      sys.settrace(trace)
+      try:
+        return f(*args, **kwargs)
+      finally:
+        sys.settrace(None)
+
+    return wrapper
+
+class compute_counted(object):
+
+  def __init__(self):
+    pass
+
+  def __call__(self, f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+      current = 0
+      a, b = 0, 1
+
+      def trace(frame, event, arg):
+        nonlocal current
+        if a > b:
+          pass
+        else:
+          current += 1
+        return trace
+
+      sys.settrace(trace)
+      try:
+        return f(*args, **kwargs)
+      finally:
+        sys.settrace(None)
+        print('COMPUTE COUNT: %d' % current)
+
+    return wrapper
 
 class timeout_after(object):
   """

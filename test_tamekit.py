@@ -129,5 +129,20 @@ class TimeoutAfterTests(unittest.TestCase):
     with self.assertRaises(TimeoutError):
       _fn()
 
+class ComputeoutAfterTests(unittest.TestCase):
+
+  def compute_for(self, dur):
+    start = timeit.default_timer()
+    u = 0
+    while timeit.default_timer() - start < dur:
+      pass
+
+  def test_decorator(self):
+    @tamekit.computeout_after(1900000)
+    def _fn():
+      self.compute_for(1)
+
+    _fn()
+
 if __name__ == '__main__':
   unittest.main()
