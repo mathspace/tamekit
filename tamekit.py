@@ -65,9 +65,16 @@ def interrupt_thread(tid, exctype):
     raise ValueError('Invalid thread ID')
 
 class computeout_after(object):
+  """
+  Decorator to limit computations of a function to given number of ops.
+  Use @compute_counted() to measure average computation for a function.
 
-  def __init__(self, lines):
-    self.lines = lines
+  If the decorated function goes over the limit, a ComputeoutError is
+  raised to terminate it.
+  """
+
+  def __init__(self, ops):
+    self.ops = ops
 
   def __call__(self, f):
     @functools.wraps(f)
@@ -76,7 +83,7 @@ class computeout_after(object):
 
       def trace(frame, event, arg):
         nonlocal current
-        if current > self.lines:
+        if current > self.ops:
           raise ComputeoutError()
         else:
           current += 1
@@ -91,6 +98,13 @@ class computeout_after(object):
     return wrapper
 
 class compute_counted(object):
+  """
+  Record number of runtime operations in the decorated function. The
+  result is printed to stdout after the end of function execution.
+
+  The result is used as a guide/input to @computeout_after() decorator
+  to limit the computations of future calls to the decorated function.
+  """
 
   def __init__(self):
     pass
