@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/oxplot/tamekit.svg?branch=master)](https://travis-ci.org/oxplot/tamekit)
+
 *tamekit* allows limiting the time a block of code takes to run:
 
     import tamekit
