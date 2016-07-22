@@ -6,4 +6,7 @@ python:
   - "3.5"
   - "3.5-dev"
   - "nightly"
-script: ./test_tamekit.py
+install:
+  - pip install coverage coveralls
+script: coverage run ./test_tamekit.py
+after_success: coveralls
