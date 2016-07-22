@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/oxplot/tamekit.svg?branch=master)](https://travis-ci.org/oxplot/tamekit)
+[![Coverage Status](https://coveralls.io/repos/github/oxplot/tamekit/badge.svg?branch=master)](https://coveralls.io/github/oxplot/tamekit?branch=master)
 
 *tamekit* allows limiting the time a block of code takes to run:
 
